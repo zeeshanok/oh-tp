@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "165333625696",
+    "project_id": "oh-tp-1631b",
+    "storage_bucket": "oh-tp-1631b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165333625696:android:8c0a94114e2933bfc9cc05",
+        "android_client_info": {
+          "package_name": "com.example.oh_tp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "165333625696-56qd0hea2ed2femghj4238o921j7qg3i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxkUErdFNKEa53NFh5Yb3esoD_ot5eQzc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "165333625696-56qd0hea2ed2femghj4238o921j7qg3i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
