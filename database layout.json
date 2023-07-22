@@ -1,0 +1,22 @@
+{
+    "controllers": {
+        "{controllerId}": "{senderId}"
+    },
+    "active_senders": {
+        "senderId": {
+            "controllerId": "{controllerId}",
+            "messages": [
+                {
+                    "content": "{content}",
+                    "address": "{address"
+                }
+            ]
+        }
+    },
+    "controller_requests": {
+        "{senderId}": {
+            "controllerId": "{controllerId}",
+            "accepted": null
+        }
+    }
+}

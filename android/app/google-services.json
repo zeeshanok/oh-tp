@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "165333625696",
+    "firebase_url": "https://oh-tp-1631b-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "oh-tp-1631b",
     "storage_bucket": "oh-tp-1631b.appspot.com"
   },
@@ -29,6 +30,13 @@
             {
               "client_id": "165333625696-56qd0hea2ed2femghj4238o921j7qg3i.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "165333625696-p1dg54dsv0bqn9uuvo51rh5bh4k2jvnl.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ohTp.RunnerTests"
+              }
             }
           ]
         }

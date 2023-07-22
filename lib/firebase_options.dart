@@ -52,6 +52,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '165333625696',
     projectId: 'oh-tp-1631b',
     authDomain: 'oh-tp-1631b.firebaseapp.com',
+    databaseURL: 'https://oh-tp-1631b-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'oh-tp-1631b.appspot.com',
   );
 
@@ -60,6 +61,7 @@ class DefaultFirebaseOptions {
     appId: '1:165333625696:android:8c0a94114e2933bfc9cc05',
     messagingSenderId: '165333625696',
     projectId: 'oh-tp-1631b',
+    databaseURL: 'https://oh-tp-1631b-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'oh-tp-1631b.appspot.com',
   );
 
@@ -68,6 +70,7 @@ class DefaultFirebaseOptions {
     appId: '1:165333625696:ios:98047942a9b8e637c9cc05',
     messagingSenderId: '165333625696',
     projectId: 'oh-tp-1631b',
+    databaseURL: 'https://oh-tp-1631b-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'oh-tp-1631b.appspot.com',
     iosClientId: '165333625696-p1dg54dsv0bqn9uuvo51rh5bh4k2jvnl.apps.googleusercontent.com',
     iosBundleId: 'com.example.ohTp.RunnerTests',
