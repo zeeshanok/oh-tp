@@ -8,7 +8,8 @@
             "messages": [
                 {
                     "content": "{content}",
-                    "address": "{address"
+                    "address": "{address}",
+                    "time": "{time}"
                 }
             ]
         }

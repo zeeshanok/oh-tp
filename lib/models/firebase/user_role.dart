@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:oh_tp/models/sms_broadcaster.dart';
 import 'package:oh_tp/models/user_role.dart';
 
 class FirebaseUserRoleModel implements UserRoleModel {
@@ -17,10 +18,32 @@ class FirebaseUserRoleModel implements UserRoleModel {
       _controllerManager;
   final _controllerManager = ValueNotifier<FirebaseControllerManager?>(null);
 
+  @override
+  late SmsBroadcaster smsBroadcaster;
+
   late FirebaseAuth auth;
 
   late FirebaseDatabase database;
   late DatabaseReference activeSendersRef, controllersRef;
+
+  bool _isController = false;
+  bool _isActiveSender = false;
+
+  FirebaseUserRoleModel() {
+    smsBroadcaster = FirebaseSmsBroadcaster(this);
+  }
+
+  void _evaluateUserRole() {
+    if (!_isActiveSender && !_isController) {
+      _currentUserRole.value = UserRoles.unassigned;
+    }
+    if (!_isActiveSender && _isController) {
+      _currentUserRole.value = UserRoles.controller;
+    }
+    if (_isActiveSender && !_isController) {
+      _currentUserRole.value = UserRoles.activeSender;
+    }
+  }
 
   @override
   void initialise() {
@@ -32,30 +55,34 @@ class FirebaseUserRoleModel implements UserRoleModel {
 
     activeSendersRef.onValue.listen((event) {
       if (event.snapshot.exists) {
-        _currentUserRole.value = UserRoles.activeSender;
+        _isActiveSender = true;
       } else {
         // entry was deleted
-        _currentUserRole.value = UserRoles.unassigned;
+        _isActiveSender = false;
       }
+      _evaluateUserRole();
     });
 
     controllersRef = database.ref('controllers/$uid');
 
     controllersRef.onValue.listen((event) {
       if (event.snapshot.exists) {
-        _currentUserRole.value = UserRoles.controller;
+        _isController = true;
       } else {
-        _currentUserRole.value = UserRoles.unassigned;
+        _isController = false;
       }
+      _evaluateUserRole();
     });
   }
 
   @override
-  Future<void> becomeActiveSender() async {
+  Future<void> becomeActiveSender(String controllerId) async {
     if (_currentUserRole.value != UserRoles.unassigned) {
       await becomeUnassigned();
     }
-    await activeSendersRef.set("sir yes sir");
+    await activeSendersRef.set({
+      "controllerId": controllerId,
+    });
   }
 
   @override
@@ -92,7 +119,8 @@ class FirebaseUserRoleModel implements UserRoleModel {
         .firstWhere((event) => event.snapshot.exists);
 
     return FirebaseControllerRequest(
-        controllerId: event.snapshot.value! as String);
+      controllerId: event.snapshot.value! as String,
+    );
   }
 }
 
@@ -154,7 +182,7 @@ class FirebaseControllerRequest implements ControllerRequest {
   @override
   Future<void> accept() async {
     await controllerRequestRef.child('accepted').set(true);
-    await GetIt.instance<UserRoleModel>().becomeActiveSender();
+    await GetIt.instance<UserRoleModel>().becomeActiveSender(_controllerId);
   }
 
   @override
