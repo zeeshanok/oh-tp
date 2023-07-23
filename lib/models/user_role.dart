@@ -9,6 +9,8 @@ abstract class UserRoleModel {
   Future<bool> becomeController(String senderId);
   Future<void> becomeActiveSender();
   Future<void> becomeUnassigned();
+
+  Future<ControllerRequest> waitForNextControllerRequest();
 }
 
 enum UserRoles { controller, activeSender, unassigned }
@@ -20,4 +22,10 @@ abstract class ControllerManager {
   ValueNotifier<ControllerRequestStatus> get controllerStatus;
 
   Future<ControllerRequestStatus> requestSenderAccess();
+}
+
+abstract class ControllerRequest {
+  String get controllerId;
+  Future<void> accept();
+  Future<void> reject();
 }

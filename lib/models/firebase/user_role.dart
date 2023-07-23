@@ -4,17 +4,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:get_it/get_it.dart';
 import 'package:oh_tp/models/user_role.dart';
 
 class FirebaseUserRoleModel implements UserRoleModel {
-  final _currentUserRole = ValueNotifier(UserRoles.unassigned);
   @override
   ValueNotifier<UserRoles> get currentUserRole => _currentUserRole;
+  final _currentUserRole = ValueNotifier(UserRoles.unassigned);
 
-  final _controllerManager = ValueNotifier<FirebaseControllerManager?>(null);
   @override
   ValueNotifier<FirebaseControllerManager?> get controllerManager =>
       _controllerManager;
+  final _controllerManager = ValueNotifier<FirebaseControllerManager?>(null);
 
   late FirebaseAuth auth;
 
@@ -25,6 +26,7 @@ class FirebaseUserRoleModel implements UserRoleModel {
   void initialise() {
     auth = FirebaseAuth.instance;
     database = FirebaseDatabase.instance;
+
     final uid = auth.currentUser!.uid;
     activeSendersRef = database.ref('active_senders/$uid');
 
@@ -79,6 +81,19 @@ class FirebaseUserRoleModel implements UserRoleModel {
     await controllersRef.remove();
     await activeSendersRef.remove();
   }
+
+  @override
+  Future<ControllerRequest> waitForNextControllerRequest() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final controllerRequestRef =
+        FirebaseDatabase.instance.ref('controller_requests/$uid/controllerId');
+
+    final event = await controllerRequestRef.onValue
+        .firstWhere((event) => event.snapshot.exists);
+
+    return FirebaseControllerRequest(
+        controllerId: event.snapshot.value! as String);
+  }
 }
 
 class FirebaseControllerManager implements ControllerManager {
@@ -119,5 +134,31 @@ class FirebaseControllerManager implements ControllerManager {
         : ControllerRequestStatus.rejected;
     await controllerRequestsRef.remove();
     return _controllerStatus.value;
+  }
+}
+
+class FirebaseControllerRequest implements ControllerRequest {
+  @override
+  String get controllerId => _controllerId;
+  final String _controllerId;
+
+  late final DatabaseReference controllerRequestRef;
+
+  FirebaseControllerRequest({required String controllerId})
+      : _controllerId = controllerId {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    controllerRequestRef =
+        FirebaseDatabase.instance.ref('controller_requests/$uid');
+  }
+
+  @override
+  Future<void> accept() async {
+    await controllerRequestRef.child('accepted').set(true);
+    await GetIt.instance<UserRoleModel>().becomeActiveSender();
+  }
+
+  @override
+  Future<void> reject() async {
+    await controllerRequestRef.child('accepted').set(false);
   }
 }
