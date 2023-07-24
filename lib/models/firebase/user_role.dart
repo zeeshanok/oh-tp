@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
+import 'package:oh_tp/models/message_model.dart';
 import 'package:oh_tp/models/sms_broadcaster.dart';
 import 'package:oh_tp/models/user_role.dart';
 
@@ -67,7 +68,14 @@ class FirebaseUserRoleModel implements UserRoleModel {
 
     controllersRef.onValue.listen((event) {
       if (event.snapshot.exists) {
+        final senderId = event.snapshot.value! as String;
         _isController = true;
+        // For when a controller manager is already initialised
+        if (_controllerManager.value == null ||
+            senderId != _controllerManager.value!.senderId) {
+          _controllerManager.value =
+              FirebaseControllerManager(senderId: senderId);
+        }
       } else {
         _isController = false;
       }
@@ -96,6 +104,7 @@ class FirebaseUserRoleModel implements UserRoleModel {
 
     if (result == ControllerRequestStatus.accepted) {
       await controllersRef.set(senderId);
+
       return true;
     } else {
       debugPrint("They rejected us :(");
@@ -125,14 +134,19 @@ class FirebaseUserRoleModel implements UserRoleModel {
 }
 
 class FirebaseControllerManager implements ControllerManager {
-  final _controllerStatus = ValueNotifier(ControllerRequestStatus.waiting);
   @override
   ValueNotifier<ControllerRequestStatus> get controllerStatus =>
       _controllerStatus;
+  final _controllerStatus = ValueNotifier(ControllerRequestStatus.waiting);
 
-  final String _senderId;
   @override
   String get senderId => _senderId;
+  final String _senderId;
+
+  @override
+  Stream<List<Message>> get messageStream => _messageStreamController.stream;
+  final StreamController<List<Message>> _messageStreamController =
+      StreamController();
 
   FirebaseControllerManager({required String senderId}) : _senderId = senderId;
 
@@ -149,9 +163,10 @@ class FirebaseControllerManager implements ControllerManager {
     debugPrint("waiting for accept");
     final event = await Future.any<DatabaseEvent>([
       Future.delayed(
-          30.seconds,
-          () => throw TimeoutException(
-              "Sender did not respond in time (30 seconds)")),
+        30.seconds,
+        () => throw TimeoutException(
+            "Sender did not respond in time (30 seconds)"),
+      ),
       controllerRequestsRef
           .child('accepted')
           .onValue
@@ -162,6 +177,30 @@ class FirebaseControllerManager implements ControllerManager {
         : ControllerRequestStatus.rejected;
     await controllerRequestsRef.remove();
     return _controllerStatus.value;
+  }
+
+  StreamSubscription<DatabaseEvent>? _smsBroadcastSub;
+
+  @override
+  void startReceivingSmsBroadcast() {
+    final ref =
+        FirebaseDatabase.instance.ref('active_senders/$_senderId/messages');
+
+    _smsBroadcastSub =
+        ref.onValue.where((event) => event.snapshot.exists).listen((event) {
+      final List<Map<dynamic, dynamic>> snapshotList =
+          (event.snapshot.value as List<Object?>)
+              .map((e) => (e as Map<Object?, Object?>).cast())
+              .toList();
+      final messageList = snapshotList.map((e) => Message.fromMap(e)).toList()
+        ..sort((a, b) => a.time.compareTo(b.time));
+      _messageStreamController.sink.add(messageList);
+    });
+  }
+
+  @override
+  void stopReceivingSmsBroadcast() {
+    _smsBroadcastSub?.cancel();
   }
 }
 

@@ -19,7 +19,7 @@ class Message {
     };
   }
 
-  factory Message.fromMap(Map<String, dynamic> map) {
+  factory Message.fromMap(Map<dynamic, dynamic> map) {
     return Message(
       content: map["content"],
       address: map["address"],
@@ -33,5 +33,19 @@ class Message {
       address: message.address!,
       time: message.date!,
     );
+  }
+
+  factory Message.test() {
+    return Message(
+      content: 'yah',
+      address: 'oh',
+      time: DateTime.now(),
+    );
+  }
+
+  bool equals(Message other) {
+    return content == other.content &&
+        address == other.address &&
+        time == other.time;
   }
 }

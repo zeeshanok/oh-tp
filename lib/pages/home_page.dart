@@ -3,11 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:get_it/get_it.dart';
 import 'package:get_it_hooks/get_it_hooks.dart';
+import 'package:oh_tp/models/message_model.dart';
 import 'package:oh_tp/models/user_role.dart';
 import 'package:oh_tp/pages/receive_otp_dialog.dart';
 import 'package:oh_tp/pages/send_otp_dialog.dart';
 import 'package:oh_tp/utils.dart';
 import 'package:oh_tp/widgets/default_dialog.dart';
+import 'package:oh_tp/widgets/sms_item.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomePage extends StatefulWidget {
@@ -34,12 +36,15 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-        body: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      child: Center(
-        child: ConfigurationSelector(),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Center(
+            child: ConfigurationSelector(),
+          ),
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -160,7 +165,7 @@ class SmsSenderView extends HookWidget {
           );
       return broadcaster.stop;
     }, []);
-    return Text("send sms");
+    return const Text("Sending sms...");
   }
 }
 
@@ -169,6 +174,38 @@ class SmsView extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("view sms");
+    useEffect(() {
+      final manager = GetIt.instance<UserRoleModel>().controllerManager.value!;
+      manager.startReceivingSmsBroadcast();
+      return manager.stopReceivingSmsBroadcast;
+    }, []);
+
+    final messages = useStream(
+        GetIt.instance<UserRoleModel>().controllerManager.value!.messageStream,
+        initialData: <Message>[]);
+
+    return messages.hasData && messages.data!.isNotEmpty
+        ? SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: AnimateList(
+                autoPlay: true,
+                interval: 120.ms,
+                effects: [
+                  FadeEffect(duration: 400.ms),
+                  SlideEffect(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                    duration: 400.ms,
+                    curve: Curves.easeOutCubic,
+                  )
+                ],
+                children: [
+                  for (var message in messages.data!) SmsItem(message: message)
+                ],
+              ),
+            ),
+          )
+        : const CircularProgressIndicator();
   }
 }

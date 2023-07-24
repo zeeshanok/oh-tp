@@ -41,6 +41,7 @@ class FirebaseSmsBroadcaster implements SmsBroadcaster {
       };
 
       await ref.set(map);
+
       debugPrint("updated sms");
     } else {
       throw Exception("current user is not active sender");
